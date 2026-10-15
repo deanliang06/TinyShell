@@ -1,34 +1,34 @@
-We are in loc x: 464, y: 182
-We are in loc x: 464, y: 182
-We are in loc x: 239, y: 284
-We are in loc x: 554, y: 261
-We are in loc x: 554, y: 261
-We are in loc x: 349, y: 231
-We are in loc x: 198, y: 231
-We are in loc x: 391, y: 109
-We are in loc x: 471, y: 240
-We are in loc x: 354, y: 325
-We are in loc x: 442, y: 188
-We are in loc x: 390, y: 221
-We are in loc x: 390, y: 221
-We are in loc x: 252, y: 251
-We are in loc x: 594, y: 259
-We are in loc x: 306, y: 208
-We are in loc x: 306, y: 208
-We are in loc x: 306, y: 208
-We are in loc x: 306, y: 208
-We are in loc x: 307, y: 212
-We are in loc x: 307, y: 212
-We are in loc x: 307, y: 212
-We are in loc x: 598, y: 225
-We are in loc x: 598, y: 225
-We are in loc x: 476, y: 243
-We are in loc x: 669, y: 281
-We are in loc x: 669, y: 281
-We are in loc x: 499, y: 314
-We are in loc x: 499, y: 314
-We are in loc x: 499, y: 314
-We are in loc x: 715, y: 301
-We are in loc x: 352, y: 198
-We are in loc x: 352, y: 198
-We are in loc x: 352, y: 198
+cwd: 
+cwd: We are in loc x: 74, y: 442
+cwd: cwd: cwd: We are in loc x: 443, y: 263
+cwd: cwd: We are in loc x: 404, y: 363
+cwd: We are in loc x: 15, y: 482
+cwd: cwd: cwd: cwd: We are in loc x: 166, y: 137
+cwd: cwd: cwd: cwd: cwd: cwd: 52 and 52-2147483648 and -2147483648944 and -488944 and -488944 and 488944 and 488944 and 488944 and 488We are in loc x: 39, y: 469
+We are in loc x: 147, y: 462
+We are in loc x: 147, y: 462
+We are in loc x: 299, y: 460
+We are in loc x: 26, y: 471
+We are in loc x: 39, y: 474
+We are in loc x: 39, y: 474
+We are in loc x: 39, y: 474
+We are in loc x: 41, y: 471
+We are in loc x: 41, y: 471
+We are in loc x: 49, y: 471
+We are in loc x: 49, y: 471
+We are in loc x: 49, y: 471
+We are in loc x: 38, y: 471
+We are in loc x: 49, y: 471
+We are in loc x: 49, y: 471
+We are in loc x: 45, y: 471
+We are in loc x: 45, y: 471
+We are in loc x: 45, y: 471
+944 and 488We are in loc x: 38, y: 470
+We are in loc x: 38, y: 470
+We are in loc x: 38, y: 470
+We are in loc x: 38, y: 470
+944 and 488We are in loc x: 0, y: 45
+944 and 488We are in loc x: 0, y: 45
+We are in loc x: 483, y: 45
+We are in loc x: 483, y: 45
+We are in loc x: 0, y: 0

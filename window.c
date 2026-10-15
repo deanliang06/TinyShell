@@ -5,38 +5,29 @@
 #include "types.h"
 #include "display.h"
 
-inline WindowConfig *GetAppState(HWND hwnd) {
+static WindowConfig *GetAppState(HWND hwnd) {
     LONG_PTR ptr = GetWindowLongPtr(hwnd, GWLP_USERDATA);
     WindowConfig *ch = (WindowConfig *)ptr;
     return ch;
 }  
+
+int writingLastMessage(WindowConfig *wc) {
+    int messageCount = wc->ch->size;
+    return wc->ch->messages[messageCount-1].writing;
+}
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch(uMsg) {
         case WM_LBUTTONDOWN:
             int xPos = GET_X_LPARAM(lParam);
             int yPos = GET_Y_LPARAM(lParam);
-
-            const char *file = "text.txt";
-            FILE *fd = fopen(file, "a");
-            if (!fd) {
-                return 1;
-            }
-            fprintf(fd, "We are in loc x: %d, y: %d\n", xPos, yPos);
-            fclose(fd);
             return 0;
         case WM_CREATE:
             CREATESTRUCT *cs = (CREATESTRUCT *)lParam;
             WindowConfig *wConfig = (WindowConfig *)(cs->lpCreateParams);
-            wConfig->pHeight = cs->cy;
-            wConfig->y = cs->y;
-            wConfig->pWidth = cs->cx;
-            wConfig->x = cs->x;
             SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)wConfig);
 
             if (!initDeviceSettings(hwnd)) return 1;
-            if (!changeDisplay(hwnd, wConfig)) return 1;
-
             return 0;
         case WM_DESTROY:
             PostQuitMessage(0);
@@ -59,7 +50,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     WindowConfig wConfig = {&chat, 0, 0, 0, 0, 12};
     if (!initHistory(&chat)) return 1;
     
-    HWND hwnd = CreateWindowEx(
+    HWND hwnd = CreateWindowExA(
         0,
         CLASS_NAME,
         "Learn to Program Windows (Fine)",
@@ -77,6 +68,46 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     }
     ShowWindow(hwnd, nCmdShow);
     
+    //init
+    WindowConfig *wConfigP = GetAppState(hwnd);
+    if (!changeDisplay(hwnd, wConfigP)) return 1;
+
+    //if last message is currently being written then set up text box
+    if (writingLastMessage(wConfigP)) {
+        
+        RECT inputPlacement = {};
+        getInputSizing(wConfigP, &inputPlacement);
+
+        HWND textHW = CreateWindowExA(
+            0,
+            "EDIT",
+            NULL,
+            ES_AUTOHSCROLL | WS_VISIBLE | WS_CHILD,
+            inputPlacement.left, inputPlacement.top, inputPlacement.right-inputPlacement.left, inputPlacement.bottom-inputPlacement.top,//up for deebate
+            hwnd, 
+            NULL,
+            hInstance,
+            NULL
+        );
+
+
+
+        ShowWindow(textHW, nCmdShow);
+
+        RECT border;
+        if (!GetClientRect(textHW, &border)) return 1;
+
+        const char *file = "text.txt";
+        FILE *fd = fopen(file, "a");
+        if (!fd) {
+            return 1;
+        }
+        fprintf(fd, "We are in loc x: %d, y: %d\n", border.top, border.left);
+        fclose(fd);
+
+        SetFocus(textHW);
+    }
+
     MSG msg = { };
     while (GetMessage(&msg, NULL, 0, 0) > 0)
     {

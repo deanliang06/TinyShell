@@ -7,15 +7,28 @@
 #include "types.h"
 
 #define LINESIZE 24 // 12 px top
-#define OFFSET 12 // 12 px from bottom and from left
+#define OFFSET 2 // 12 px from bottom and from left
 #define MAXBUFSIZE 512 //for lines
 
 int changeDisplay(HWND hwnd, WindowConfig *wConfig) {
     //just init for now (probably 1000 bugs)
     ChatHistory *ch = wConfig->ch;
     HDC deviceContext = GetDC(hwnd);
-    const int bottomY = wConfig->y  + wConfig->pHeight - OFFSET;
-    const int xConst = wConfig->x + OFFSET;
+    
+    //get client rect
+    RECT border;
+    if (!GetClientRect(hwnd, &border)) return 1;
+    const int yHeight = border.bottom - border.top;
+    const int xHeight = border.right - border.left;
+    
+    //get dims
+    wConfig->pWidth = xHeight;
+    wConfig->pHeight = yHeight;
+    wConfig->x = border.left;
+    wConfig->y = border.top;
+
+    const int bottomY = 0 + yHeight - OFFSET - LINESIZE; //font-size means 12
+    const int xConst = 0 + OFFSET;
 
     const int chatSize = wConfig->ch->size;
     const int usableWindowHeight = wConfig->pHeight - OFFSET; // bc we padd the top by 12 we only bottom
@@ -31,15 +44,15 @@ int changeDisplay(HWND hwnd, WindowConfig *wConfig) {
         }
         memcpy(output+entry, ch->messages[i].text, strlen(ch->messages[i].text));
 
-        if (!TextOut(deviceContext, xConst, bottomY - curSpaceTaken,output,strlen(output))) {
+        if (!TextOutA(deviceContext, xConst, bottomY - curSpaceTaken,output,strlen(output))) {
             ReleaseDC(hwnd, deviceContext);
             return 0;
         }
-
         curSpaceTaken += LINESIZE;
     }
 
     ReleaseDC(hwnd, deviceContext);
+    InvalidateRect(hwnd, NULL, 0);
     return 1;
 }
 
@@ -47,4 +60,13 @@ int initDeviceSettings(HWND hwnd) {
     HDC deviceContext = GetDC(hwnd);
     SetTextAlign(deviceContext, TA_LEFT | TA_BOTTOM | TA_NOUPDATECP);
     ReleaseDC(hwnd, deviceContext);
+}
+
+//to Edit
+int getInputSizing(WindowConfig *wConfig, RECT *toEdit) {
+    toEdit->left = 45;
+    toEdit->top = 471+LINESIZE/2;
+    toEdit->bottom = 471-LINESIZE/2;
+    toEdit->right = wConfig->pWidth - OFFSET;
+    return 1;
 }
