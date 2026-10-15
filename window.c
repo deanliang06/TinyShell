@@ -3,10 +3,11 @@
 #include <stdio.h>
 #include "memory.h"
 #include "types.h"
+#include "display.c"
 
-inline ChatHistory *GetAppState(HWND hwnd) {
+inline WindowConfig *GetAppState(HWND hwnd) {
     LONG_PTR ptr = GetWindowLongPtr(hwnd, GWLP_USERDATA);
-    ChatHistory *ch = (ChatHistory *)ptr;
+    WindowConfig *ch = (WindowConfig *)ptr;
     return ch;
 } 
 
@@ -26,8 +27,17 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             return 0;
         case WM_CREATE:
             CREATESTRUCT *cs = (CREATESTRUCT *)lParam;
-            ChatHistory *ch = (ChatHistory *)(cs->lpCreateParams);
-            SetWindowLongPtr(hwnd, GWLP_USERDATA, ch);
+            WindowConfig *wConfig = (WindowConfig *)(cs->lpCreateParams);
+            wConfig->pHeight = cs->cy;
+            wConfig->y = cs->y;
+            wConfig->pWidth = cs->cx;
+            wConfig->x = cs->x;
+            SetWindowLongPtr(hwnd, GWLP_USERDATA, wConfig);
+
+            if (!initDeviceSettings(hwnd)) return 1;
+            if (!changeDisplay(hwnd, wConfig)) return 1;
+
+            return 0;
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;
@@ -45,7 +55,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     wc.lpszClassName = CLASS_NAME;
     if (!RegisterClass(&wc)) return 1;
 
-    ChatHistory chat;
+    ChatHistory chat = {};
+    WindowConfig wConfig = {&chat, 0, 0, 0, 0, 12};
     if (!initHistory(&chat)) return 1;
     
     HWND hwnd = CreateWindowEx(
@@ -53,13 +64,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         CLASS_NAME,
         L"Learn to Program Windows (Fine)",
         WS_OVERLAPPEDWINDOW,
-
         CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-
         NULL, 
         NULL,
         hInstance,
-        &chat  
+        &wConfig
     );
 
     if (hwnd == NULL)
