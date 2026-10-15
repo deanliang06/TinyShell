@@ -3,13 +3,13 @@
 #include <stdio.h>
 #include "memory.h"
 #include "types.h"
-#include "display.c"
+#include "display.h"
 
 inline WindowConfig *GetAppState(HWND hwnd) {
     LONG_PTR ptr = GetWindowLongPtr(hwnd, GWLP_USERDATA);
     WindowConfig *ch = (WindowConfig *)ptr;
     return ch;
-} 
+}  
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch(uMsg) {
@@ -32,7 +32,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             wConfig->y = cs->y;
             wConfig->pWidth = cs->cx;
             wConfig->x = cs->x;
-            SetWindowLongPtr(hwnd, GWLP_USERDATA, wConfig);
+            SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)wConfig);
 
             if (!initDeviceSettings(hwnd)) return 1;
             if (!changeDisplay(hwnd, wConfig)) return 1;
@@ -48,7 +48,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow) {
-    const wchar_t CLASS_NAME[] = L"Sample Window Class";
+    const char CLASS_NAME[] = "Sample Window Class";
     WNDCLASS wc = {};
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = hInstance;
@@ -62,7 +62,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     HWND hwnd = CreateWindowEx(
         0,
         CLASS_NAME,
-        L"Learn to Program Windows (Fine)",
+        "Learn to Program Windows (Fine)",
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
         NULL, 

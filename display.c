@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <windowsx.h>
+#include <wingdi.h>
 #include <stdio.h>
 #include <string.h>
 #include "memory.h"
@@ -21,12 +22,12 @@ int changeDisplay(HWND hwnd, WindowConfig *wConfig) {
 
     int curSpaceTaken = 0;
 
-    for (int i = chatSize - 1; i >= 0 && curSpaceTaken < usableWindowHeight; i++) {
+    for (int i = chatSize - 1; i >= 0 && curSpaceTaken < usableWindowHeight; i--) {
         char output[MAXBUFSIZE];
         int entry = 0;
         if (ch->messages[i].command) {
-            memcpy(output, "cwd:", 5);
-            entry = 4;
+            memcpy(output, "cwd: ", 6);
+            entry = 5;
         }
         memcpy(output+entry, ch->messages[i].text, strlen(ch->messages[i].text));
 
