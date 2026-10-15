@@ -1,7 +1,14 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <stdio.h>
+#include "memory.h"
+#include "types.h"
 
+inline ChatHistory *GetAppState(HWND hwnd) {
+    LONG_PTR ptr = GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    ChatHistory *ch = (ChatHistory *)ptr;
+    return ch;
+} 
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch(uMsg) {
@@ -17,6 +24,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             fprintf(fd, "We are in loc x: %d, y: %d\n", xPos, yPos);
             fclose(fd);
             return 0;
+        case WM_CREATE:
+            CREATESTRUCT *cs = (CREATESTRUCT *)lParam;
+            ChatHistory *ch = (ChatHistory *)(cs->lpCreateParams);
+            SetWindowLongPtr(hwnd, GWLP_USERDATA, ch);
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;
@@ -34,6 +45,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     wc.lpszClassName = CLASS_NAME;
     if (!RegisterClass(&wc)) return 1;
 
+    ChatHistory chat;
+    if (!initHistory(&chat)) return 1;
+    
     HWND hwnd = CreateWindowEx(
         0,
         CLASS_NAME,
@@ -45,7 +59,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         NULL, 
         NULL,
         hInstance,
-        NULL  
+        &chat  
     );
 
     if (hwnd == NULL)
