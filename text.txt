@@ -1,0 +1,10 @@
+We are in loc x: 464, y: 182
+We are in loc x: 464, y: 182
+We are in loc x: 239, y: 284
+We are in loc x: 554, y: 261
+We are in loc x: 554, y: 261
+We are in loc x: 349, y: 231
+We are in loc x: 198, y: 231
+We are in loc x: 391, y: 109
+We are in loc x: 471, y: 240
+We are in loc x: 354, y: 325
