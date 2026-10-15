@@ -42,18 +42,44 @@ int initHistory(ChatHistory *ch) {
     return 1;
 }
 
+int editLastFull(ChatHistory *ch, char *text, int cmd, int writing) {
+    Message *last = &(ch->messages[ch->size-1]);
+    last->command = cmd;
+    last->text = text;
+    last->writing = writing;
+    return 1;
+}
+
+int editLastText(ChatHistory *ch, char *text) {
+    Message *last = &(ch->messages[ch->size-1]);
+    last->text = text;
+    return 1;
+}
+//this is responsible for adding (stdout for executables 
+//and subsequently adding the next line)
 int addToHistory(ChatHistory *ch, char *text, int cmd, int writing) {
     if (ch->capacity == ch->size) {
         if (!growhistory(ch)) return 0;
     }
 
-    Message *first = (Message *)malloc(sizeof(Message));
-    if (!first) return 0;
+    Message *toAdd = (Message *)malloc(sizeof(Message));
+    if (!toAdd) return 0;
 
-    first->command = cmd;
-    first->text = text;
-    first->writing = writing;
-    ch->messages[ch->size] = *first; //really odd way but I think it works
+    toAdd->command = cmd;
+    toAdd->text = text;
+    toAdd->writing = writing;
+    ch->messages[ch->size] = *toAdd; //really odd way but I think it works
     ch->size++;
+    return 1;
+}
+
+//This is exclusively responsible for setting the text and doing next line with empty line
+int completeCommand(ChatHistory *ch, char *text) {
+    if (ch->capacity == ch->size) {
+        if (!growhistory(ch)) return 0;
+    }
+
+    if (!editLastText(ch, text)) return 0;
+    if (!addToHistory(ch, text, 0, 0)) return 0;
     return 1;
 }
