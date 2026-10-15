@@ -62,11 +62,11 @@ int initDeviceSettings(HWND hwnd) {
     ReleaseDC(hwnd, deviceContext);
 }
 
-//to Edit
+//to Edit (to not be hardcoded)
 int getInputSizing(WindowConfig *wConfig, RECT *toEdit) {
-    toEdit->left = 45;
-    toEdit->top = 471+LINESIZE/2;
-    toEdit->bottom = 471-LINESIZE/2;
+    toEdit->left = 30;
+    toEdit->top = wConfig->pHeight - OFFSET - LINESIZE;//471-LINESIZE/2;
+    toEdit->bottom = wConfig->pHeight - OFFSET + LINESIZE;
     toEdit->right = wConfig->pWidth - OFFSET;
     return 1;
 }

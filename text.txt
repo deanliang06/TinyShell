@@ -32,3 +32,17 @@ We are in loc x: 38, y: 470
 We are in loc x: 483, y: 45
 We are in loc x: 483, y: 45
 We are in loc x: 0, y: 0
+We are in loc x: 483, y: 45
+We are in loc x: 0, y: 0
+We are in loc x: 483, y: 45
+We are in loc x: 0, y: 0
+We are in loc x: 483, y: 45
+We are in loc x: 0, y: 0
+We are in loc x: 459, y: 45
+We are in loc x: 0, y: 0
+We are in loc x: 462, y: 45
+We are in loc x: 0, y: 0
+We are in loc x: 462, y: 45
+We are in loc x: 0, y: 0
+We are in loc x: 462, y: 30
+We are in loc x: 0, y: 0

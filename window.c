@@ -78,6 +78,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         RECT inputPlacement = {};
         getInputSizing(wConfigP, &inputPlacement);
 
+        const char *file = "text.txt";
+        FILE *fd = fopen(file, "a");
+        if (!fd) {
+            return 1;
+        }
+        fprintf(fd, "We are in loc x: %d, y: %d\n", inputPlacement.top, inputPlacement.left);
+        fclose(fd);
+
         HWND textHW = CreateWindowExA(
             0,
             "EDIT",
@@ -97,8 +105,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         RECT border;
         if (!GetClientRect(textHW, &border)) return 1;
 
-        const char *file = "text.txt";
-        FILE *fd = fopen(file, "a");
+        fd = fopen(file, "a");
         if (!fd) {
             return 1;
         }
