@@ -21,13 +21,19 @@ LRESULT CALLBACK InputProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, U
                 int tLength = GetWindowTextLengthA(hwnd);
                 char *text = (char *)malloc(sizeof(char) * tLength);
                 if (!GetWindowTextA(hwnd, text, tLength)) return 1;
-                if (!completeCommand(wConfig->ch, text)) return 1;
+                FILE *fd = fopen("text.txt", "w");
+                if (!fd) {
+                    return 1;
+                }
+                fprintf(fd, "We are in printing %s", text);
+                fclose(fd);
+                        if (!completeCommand(wConfig->ch, text)) return 1;
                 //create thread to execute the text handling
                 if (!CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) handleText, text, 0, NULL)) return 1;
                 return 0;
             }
         default:
-            return DefWindowProc(hwnd, uMsg, wParam, lParam);
+            return DefSubclassProc(hwnd, uMsg, wParam, lParam);
     }
 }
 

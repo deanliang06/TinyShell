@@ -76,10 +76,6 @@ int addToHistory(ChatHistory *ch, char *text, int cmd, int writing) {
 
 //This is exclusively responsible for setting the text and doing next line with empty line
 int completeCommand(ChatHistory *ch, char *text) {
-    if (ch->capacity == ch->size) {
-        if (!growhistory(ch)) return 0;
-    }
-
     if (!editLastText(ch, text)) return 0;
     if (!addToHistory(ch, text, 0, 0)) return 0;
     return 1;
