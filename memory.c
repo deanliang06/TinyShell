@@ -7,6 +7,7 @@
 int freeHistory(ChatHistory *ch) {
     int len = ch->size;
     for (int i = 0; i < len; i++) {
+        free(ch->messages[i].text);
         free(&(ch->messages[i]));
     }
     return 0;

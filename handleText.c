@@ -2,10 +2,8 @@
 #include <unistd.h>
 
 int handleText(char *text) {
-    if (fork() != 0) {
-        return 0;
-    }
-    while(true){
+    
+    while(1){
 
     }
     return 0;

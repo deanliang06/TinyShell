@@ -1,20 +1,34 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <stdio.h>
+#include <commctrl.h>
 #include "memory.h"
 #include "types.h"
 #include "display.h"
 #include "handleText.h"
 
-static WindowConfig *GetAppState(HWND hwnd) {
-    LONG_PTR ptr = GetWindowLongPtr(hwnd, GWLP_USERDATA);
-    WindowConfig *ch = (WindowConfig *)ptr;
-    return ch;
-}  
+static WindowConfig *wConfig;
 
 int writingLastMessage(WindowConfig *wc) {
     int messageCount = wc->ch->size;
     return wc->ch->messages[messageCount-1].writing;
+}
+
+LRESULT CALLBACK InputProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData) {
+    switch(uMsg) {
+        case WM_KEYDOWN:
+            if (wParam == VK_RETURN && writingLastMessage(wConfig)) {
+                int tLength = GetWindowTextLengthA(hwnd);
+                char *text = (char *)malloc(sizeof(char) * tLength);
+                if (!GetWindowTextA(hwnd, text, tLength)) return 1;
+                if (!completeCommand(wConfig->ch, text)) return 1;
+                //create thread to execute the text handling
+                if (!CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) handleText, text, 0, NULL)) return 1;
+                return 0;
+            }
+        default:
+            return DefWindowProc(hwnd, uMsg, wParam, lParam);
+    }
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -24,22 +38,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             int yPos = GET_Y_LPARAM(lParam);
             return 0;
         case WM_CREATE:
-            CREATESTRUCT *cs = (CREATESTRUCT *)lParam;
-            WindowConfig *wConfig = (WindowConfig *)(cs->lpCreateParams);
-            SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)wConfig);
-
-            if (!initDeviceSettings(hwnd)) return 1;
             return 0;
         case WM_DESTROY:
             PostQuitMessage(0);
-            return 0;
-        case WM_KEYDOWN:
-            WindowConfig *wc = GetAppState(hwnd);
-            int tLength = GetWindowTextLengthA(hwnd);
-            char text[tLength];
-            if (!GetWindowTextA(hwnd, text, tLength)) return 1;
-            if (!completeCommand(wc, text)) return 1;
-            if (!handleText(text)) return 1;
             return 0;
         default:
             return DefWindowProc(hwnd, uMsg, wParam, lParam);
@@ -56,7 +57,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     if (!RegisterClass(&wc)) return 1;
 
     ChatHistory chat = {};
-    WindowConfig wConfig = {&chat, 0, 0, 0, 0, 12};
+    wConfig = &(WindowConfig){&chat, 0, 0, 0, 0, 12};
     if (!initHistory(&chat)) return 1;
     
     HWND hwnd = CreateWindowExA(
@@ -68,7 +69,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         NULL, 
         NULL,
         hInstance,
-        &wConfig
+        NULL
     );
 
     if (hwnd == NULL)
@@ -78,14 +79,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     ShowWindow(hwnd, nCmdShow);
     
     //init
-    WindowConfig *wConfigP = GetAppState(hwnd);
-    if (!changeDisplay(hwnd, wConfigP)) return 1;
+    if (!changeDisplay(hwnd, wConfig)) return 1;
 
     //if last message is currently being written then set up text box
-    if (writingLastMessage(wConfigP)) {
+    if (writingLastMessage(wConfig)) {
         
         RECT inputPlacement = {};
-        getInputSizing(wConfigP, &inputPlacement);
+        getInputSizing(wConfig, &inputPlacement);
 
         // const char *file = "text.txt";
         // FILE *fd = fopen(file, "a");
@@ -107,8 +107,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             NULL
         );
 
-
-
+        SetWindowSubclass(textHW, InputProc, 1, 0);
         ShowWindow(textHW, nCmdShow);
 
         // RECT border;
@@ -130,4 +129,5 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
+    freeHistory(wConfig->ch);
 }
