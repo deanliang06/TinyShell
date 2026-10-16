@@ -7,3 +7,4 @@
 int changeDisplay(HWND hwnd, WindowConfig *wConfig);
 int initDeviceSettings(HWND hwnd);
 int getInputSizing(WindowConfig *wConfig, RECT *toEdit);
+int resetTextBox(HWND hwnd, char *text);

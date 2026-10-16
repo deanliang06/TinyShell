@@ -8,8 +8,8 @@ int freeHistory(ChatHistory *ch) {
     int len = ch->size;
     for (int i = 0; i < len; i++) {
         free(ch->messages[i].text);
-        free(&(ch->messages[i]));
     }
+    free(ch->messages);//bro
     return 0;
 }
 
@@ -23,7 +23,7 @@ int growhistory(ChatHistory *ch) {
         memcpy(&newMessages[i], &oMsgs[i], sizeof(Message));
     }
 
-    if (!freeHistory(ch)) return 0;
+    free(ch->messages);
     ch->messages = newMessages;
     ch->capacity = newSize;
     return 1;
@@ -45,6 +45,11 @@ int initHistory(ChatHistory *ch) {
 
 int editLastFull(ChatHistory *ch, char *text, int cmd, int writing) {
     Message *last = &(ch->messages[ch->size-1]);
+    FILE *fd = fopen("text.txt", "w");
+    fprintf(fd, "We hate ourselves: %s, command: %d\n", last->text, last->command);//fuck windows
+    fclose(fd);//rbuh
+
+
     last->command = cmd;
     last->text = text;
     last->writing = writing;
@@ -63,20 +68,20 @@ int addToHistory(ChatHistory *ch, char *text, int cmd, int writing) {
         if (!growhistory(ch)) return 0;
     }
 
-    Message *toAdd = (Message *)malloc(sizeof(Message));
+    Message *toAdd = &(ch->messages[ch->size]);
     if (!toAdd) return 0;
 
     toAdd->command = cmd;
     toAdd->text = text;
     toAdd->writing = writing;
-    ch->messages[ch->size] = *toAdd; //really odd way but I think it works
     ch->size++;
     return 1;
 }
 
 //This is exclusively responsible for setting the text and doing next line with empty line
+//In cases when you submit a command/executable
 int completeCommand(ChatHistory *ch, char *text) {
     if (!editLastText(ch, text)) return 0;
-    if (!addToHistory(ch, text, 0, 0)) return 0;
+    if (!addToHistory(ch, "", 0, 0)) return 0;
     return 1;
 }

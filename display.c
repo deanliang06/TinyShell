@@ -12,8 +12,12 @@
 
 int changeDisplay(HWND hwnd, WindowConfig *wConfig) {
     //just init for now (probably 1000 bugs)
-    ChatHistory *ch = wConfig->ch;
     HDC deviceContext = GetDC(hwnd);
+    PAINTSTRUCT ps;
+    BeginPaint(hwnd, &ps);
+    FillRect(deviceContext, &ps.rcPaint, GetSysColorBrush(COLOR_WINDOW));
+
+    ChatHistory *ch = wConfig->ch;
     
     //get client rect
     RECT border;
@@ -34,7 +38,6 @@ int changeDisplay(HWND hwnd, WindowConfig *wConfig) {
     const int usableWindowHeight = wConfig->pHeight - OFFSET; // bc we padd the top by 12 we only bottom
 
     int curSpaceTaken = 0;
-
     for (int i = chatSize - 1; i >= 0 && curSpaceTaken < usableWindowHeight; i--) {
         char output[MAXBUFSIZE];
         int entry = 0;
@@ -42,31 +45,42 @@ int changeDisplay(HWND hwnd, WindowConfig *wConfig) {
             memcpy(output, "cwd: ", 6);
             entry = 5;
         }
-        memcpy(output+entry, ch->messages[i].text, strlen(ch->messages[i].text));
-
+        memcpy(&output[entry], ch->messages[i].text, strlen(ch->messages[i].text) + 1);
         if (!TextOutA(deviceContext, xConst, bottomY - curSpaceTaken,output,strlen(output))) {
             ReleaseDC(hwnd, deviceContext);
             return 0;
         }
         curSpaceTaken += LINESIZE;
     }
-
+    ValidateRect(hwnd, NULL);
     ReleaseDC(hwnd, deviceContext);
-    InvalidateRect(hwnd, NULL, 0);
+    EndPaint(hwnd, &ps);
     return 1;
 }
 
 int initDeviceSettings(HWND hwnd) {
     HDC deviceContext = GetDC(hwnd);
     SetTextAlign(deviceContext, TA_LEFT | TA_BOTTOM | TA_NOUPDATECP);
-    ReleaseDC(hwnd, deviceContext);
+    ReleaseDC(hwnd, deviceContext);//bruh
 }
 
 //to Edit (to not be hardcoded)
 int getInputSizing(WindowConfig *wConfig, RECT *toEdit) {
-    toEdit->left = 30;
+    toEdit->left = 32;
     toEdit->top = wConfig->pHeight - OFFSET - LINESIZE;//471-LINESIZE/2;
     toEdit->bottom = wConfig->pHeight - OFFSET + LINESIZE;
     toEdit->right = wConfig->pWidth - OFFSET;
+    return 1;
+}
+
+int resetTextBox(HWND hwnd) {
+    HDC hdc = GetDC(hwnd);
+    PAINTSTRUCT ps;
+    BeginPaint(hwnd, &ps);
+    FillRect(hdc, &ps.rcPaint, GetSysColorBrush(COLOR_WINDOW));
+    SetWindowTextA(hwnd, "");
+    SendMessageA(hwnd, EM_SETSEL, 0, 0);//
+    EndPaint(hwnd, &ps);
+    ReleaseDC(hwnd, hdc);
     return 1;
 }

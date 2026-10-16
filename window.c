@@ -2,10 +2,19 @@
 #include <windowsx.h>
 #include <stdio.h>
 #include <commctrl.h>
+#include <processthreadsapi.h>
 #include "memory.h"
 #include "types.h"
 #include "display.h"
 #include "handleText.h"
+
+#define WM_CREATECARET 0x8001
+
+typedef struct ShellArgs {
+    HWND hwnd;
+    char* text;
+} ShellArgs;
+
 
 static WindowConfig *wConfig;
 
@@ -14,24 +23,41 @@ int writingLastMessage(WindowConfig *wc) {
     return wc->ch->messages[messageCount-1].writing;
 }
 
+DWORD handleTextUpdate(LPVOID argConfig) {
+    ShellArgs *shellArgs = (ShellArgs *) argConfig;
+    handleText(shellArgs->text);
+    editLastFull(wConfig->ch, "", 1, 1);
+    if (!changeDisplay(GetParent(shellArgs->hwnd), wConfig)) ExitThread(1);
+    SendMessageA(shellArgs->hwnd, WM_CREATECARET, 0, 0);
+    free(shellArgs);//no...
+    return 0;
+}
+
 LRESULT CALLBACK InputProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData) {
     switch(uMsg) {
         case WM_KEYDOWN:
             if (wParam == VK_RETURN && writingLastMessage(wConfig)) {
                 int tLength = GetWindowTextLengthA(hwnd);
-                char *text = (char *)malloc(sizeof(char) * tLength);
-                if (!GetWindowTextA(hwnd, text, tLength)) return 1;
-                FILE *fd = fopen("text.txt", "w");
-                if (!fd) {
-                    return 1;
-                }
-                fprintf(fd, "We are in printing %s", text);
-                fclose(fd);
-                        if (!completeCommand(wConfig->ch, text)) return 1;
+                char *text = (char *)malloc(sizeof(char) * (tLength + 1));
+                if (!GetWindowTextA(hwnd, text, tLength + 1)) return 1;//what
+                if (!completeCommand(wConfig->ch, text)) return 1;
+                if (!HideCaret(hwnd)) return 1;
+                if (!InvalidateRect(GetParent(hwnd), NULL, 1)) return 1;
+                if (!resetTextBox(hwnd, text)) return 1;
+
                 //create thread to execute the text handling
-                if (!CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) handleText, text, 0, NULL)) return 1;
+                ShellArgs *shellArg = (ShellArgs *)malloc(sizeof(ShellArgs));
+                shellArg->hwnd = hwnd;
+                shellArg->text = text;
+                HANDLE thread = CreateThread(NULL, 0, handleTextUpdate, (LPVOID) shellArg, 0, NULL);
+                CloseHandle(thread);
+                return 0;
+            } else if (!writingLastMessage(wConfig)) {//huh
                 return 0;
             }
+        case WM_CREATECARET:
+            ShowCaret(hwnd);
+            return 0;
         default:
             return DefSubclassProc(hwnd, uMsg, wParam, lParam);
     }
@@ -45,11 +71,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             return 0;
         case WM_CREATE:
             return 0;
+        case WM_PAINT:
+            if (!changeDisplay(hwnd, wConfig)) return 1;
+            return 0;
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;
         default:
-            return DefWindowProc(hwnd, uMsg, wParam, lParam);
+            return DefWindowProcA(hwnd, uMsg, wParam, lParam);
     }
 }
 
@@ -85,50 +114,30 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     ShowWindow(hwnd, nCmdShow);
     
     //init
-    if (!changeDisplay(hwnd, wConfig)) return 1;
+    changeDisplay(hwnd, wConfig);
+    InvalidateRect(hwnd, NULL, 1);//bruh
 
-    //if last message is currently being written then set up text box
-    if (writingLastMessage(wConfig)) {
-        
-        RECT inputPlacement = {};
-        getInputSizing(wConfig, &inputPlacement);
+    //intersante        
+    RECT inputPlacement = {};
+    getInputSizing(wConfig, &inputPlacement);
 
-        // const char *file = "text.txt";
-        // FILE *fd = fopen(file, "a");
-        // if (!fd) {
-        //     return 1;
-        // }
-        // fprintf(fd, "We are in loc x: %d, y: %d\n", inputPlacement.top, inputPlacement.left);
-        // fclose(fd);
+    HWND textHW = CreateWindowExA(
+        0,
+        "EDIT",
+        NULL,
+        ES_AUTOHSCROLL | WS_VISIBLE | WS_CHILD,
+        inputPlacement.left, inputPlacement.top, inputPlacement.right-inputPlacement.left, inputPlacement.bottom-inputPlacement.top,//up for deebate
+        hwnd, 
+        NULL,
+        hInstance,
+        NULL
+    );
 
-        HWND textHW = CreateWindowExA(
-            0,
-            "EDIT",
-            NULL,
-            ES_AUTOHSCROLL | WS_VISIBLE | WS_CHILD,
-            inputPlacement.left, inputPlacement.top, inputPlacement.right-inputPlacement.left, inputPlacement.bottom-inputPlacement.top,//up for deebate
-            hwnd, 
-            NULL,
-            hInstance,
-            NULL
-        );
+    SetWindowSubclass(textHW, InputProc, 1, 0);
+    ShowWindow(textHW, nCmdShow);
 
-        SetWindowSubclass(textHW, InputProc, 1, 0);
-        ShowWindow(textHW, nCmdShow);
-
-        // RECT border;
-        // if (!GetClientRect(textHW, &border)) return 1;
-
-        // fd = fopen(file, "a");
-        // if (!fd) {
-        //     return 1;
-        // }
-        // fprintf(fd, "We are in loc x: %d, y: %d\n", border.top, border.left);
-        // fclose(fd);
-
-        SetFocus(textHW);
-    }
-
+    SetFocus(textHW);
+    
     MSG msg = { };
     while (GetMessageA(&msg, NULL, 0, 0) > 0)
     {
