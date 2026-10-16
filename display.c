@@ -42,7 +42,9 @@ int changeDisplay(HWND hwnd, WindowConfig *wConfig) {
         char output[MAXBUFSIZE];
         int entry = 0;
         if (ch->messages[i].command) {
-            memcpy(output, "cwd: ", 6);
+            char cwd[MAXBUFSIZE];
+            getCWD(cwd);
+            memcpy(output, cwd, strlen(cwd));
             entry = 5;
         }
         memcpy(&output[entry], ch->messages[i].text, strlen(ch->messages[i].text) + 1);

@@ -1,8 +1,17 @@
 #include <string.h>
 #include <stdio.h>
+#include <synchapi.h>
 #include <stdlib.h>
+#include <winbase.h>
 #include "types.h"
 #include "memory.h"
+
+typedef struct DirNav {
+    char *cwd;
+    HANDLE mutex;
+} DirNav;
+
+DirNav nav = {};
 
 int freeHistory(ChatHistory *ch) {
     int len = ch->size;
@@ -40,6 +49,9 @@ int initHistory(ChatHistory *ch) {
     ch->capacity = 1;
     ch->messages = first;
     ch->size = 1;
+
+    nav.mutex = OpenMutexA(SYNCHRONIZE, FALSE, "Directory changing");
+
     return 1;
 }
 
@@ -53,6 +65,7 @@ int editLastFull(ChatHistory *ch, char *text, int cmd, int writing) {
     last->command = cmd;
     last->text = text;
     last->writing = writing;
+
     return 1;
 }
 
@@ -84,4 +97,21 @@ int completeCommand(ChatHistory *ch, char *text) {
     if (!editLastText(ch, text)) return 0;
     if (!addToHistory(ch, "", 0, 0)) return 0;
     return 1;
+}
+
+char *getCWD(char *buf) {
+    char *toReturn;
+    WaitForSingleObject(nav.mutex, INFINITE);
+    toReturn = nav.cwd;
+    ReleaseMutex(nav.mutex);
+    return toReturn;
+}
+
+void resetCWD() {
+    if (nav.cwd) free(nav.cwd);
+    WaitForSingleObject(nav.mutex, INFINITE);
+    char *newBuf = (char *)malloc(sizeof(char)*512);
+    GetCurrentDirectoryA(512, newBuf);
+    nav.cwd = newBuf;
+    ReleaseMutex(nav.mutex);
 }
