@@ -8,4 +8,5 @@ int editLastFull(ChatHistory *ch, char *text, int cmd, int writing);
 
 
 int getCWD(char *buf, int bufLen);
+int getCWDPretty(char *buf, int bufLen);
 void findCWD();

@@ -29,7 +29,7 @@ DWORD handleTextUpdate(LPVOID argConfig) {
     handleText(shellArgs->text);
     //Also must fetch CWD to get length to change EDIT Box
     char cwd[CWDBUF];
-    getCWD(cwd, CWDBUF);
+    getCWDPretty(cwd, CWDBUF);
     moveTextBox(shellArgs->hwnd, wConfig, cwd);
 
     //this just edits the messages etc
@@ -132,7 +132,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     RECT inputPlacement = {};
 
     char cwd[CWDBUF];
-    getCWD(cwd, CWDBUF);
+    getCWDPretty(cwd, CWDBUF);
     getInputSizing(hwnd, wConfig, &inputPlacement, cwd);
 
     HWND textHW = CreateWindowExA(

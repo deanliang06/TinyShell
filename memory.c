@@ -9,10 +9,11 @@
 
 typedef struct DirNav {
     char *cwd;
+    char *cwdP;
     HANDLE mutex;
 } DirNav;
 
-DirNav nav = {NULL, NULL};
+DirNav nav = {NULL, NULL, NULL};
 
 int freeHistory(ChatHistory *ch) {
     int len = ch->size;
@@ -96,6 +97,14 @@ int completeCommand(ChatHistory *ch, char *text) {
     return 1;
 }
 
+int getCWDPretty(char *buf, int bufLen) {
+    findCWD();
+    WaitForSingleObject(nav.mutex, INFINITE);
+    memcpy(buf, nav.cwdP, min(bufLen, strlen(nav.cwdP) + 1));//fuck the memory leaks boss
+    ReleaseMutex(nav.mutex);
+    return 1;
+}
+
 int getCWD(char *buf, int bufLen) {
     findCWD();
     WaitForSingleObject(nav.mutex, INFINITE);
@@ -108,7 +117,15 @@ void findCWD() {
     if (nav.cwd) free(nav.cwd);
     WaitForSingleObject(nav.mutex, INFINITE);
     char *newBuf = (char *)malloc(sizeof(char)*512);
+    char *newBufP = (char *)malloc(sizeof(char)*512);
+    
+    //append the sideways caret
+    GetCurrentDirectoryA(512, newBufP);
+    memcpy(newBufP+strlen(newBufP), "> ", 3);
+    nav.cwdP = newBufP;
+
     GetCurrentDirectoryA(512, newBuf);
     nav.cwd = newBuf;
+
     ReleaseMutex(nav.mutex);
 }

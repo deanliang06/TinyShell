@@ -43,7 +43,7 @@ int changeDisplay(HWND hwnd, WindowConfig *wConfig) {
         int entry = 0;
         if (ch->messages[i].command) {
             char cwd[MAXBUFSIZE];
-            if (!getCWD(cwd, MAXBUFSIZE)) {
+            if (!getCWDPretty(cwd, MAXBUFSIZE)) {
                 ValidateRect(hwnd, NULL);
                 ReleaseDC(hwnd, deviceContext);
                 EndPaint(hwnd, &ps);
