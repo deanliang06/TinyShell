@@ -43,13 +43,19 @@ int changeDisplay(HWND hwnd, WindowConfig *wConfig) {
         int entry = 0;
         if (ch->messages[i].command) {
             char cwd[MAXBUFSIZE];
-            getCWD(cwd);
-            memcpy(output, cwd, strlen(cwd));
-            entry = 5;
+            if (!getCWD(cwd, MAXBUFSIZE)) {
+                ValidateRect(hwnd, NULL);
+                ReleaseDC(hwnd, deviceContext);
+                EndPaint(hwnd, &ps);
+                return 0;
+            }
+            entry = strlen(cwd);
         }
         memcpy(&output[entry], ch->messages[i].text, strlen(ch->messages[i].text) + 1);
         if (!TextOutA(deviceContext, xConst, bottomY - curSpaceTaken,output,strlen(output))) {
+            ValidateRect(hwnd, NULL);
             ReleaseDC(hwnd, deviceContext);
+            EndPaint(hwnd, &ps);
             return 0;
         }
         curSpaceTaken += LINESIZE;
@@ -67,11 +73,18 @@ int initDeviceSettings(HWND hwnd) {
 }
 
 //to Edit (to not be hardcoded)
-int getInputSizing(WindowConfig *wConfig, RECT *toEdit) {
-    toEdit->left = 32;
-    toEdit->top = wConfig->pHeight - OFFSET - LINESIZE;//471-LINESIZE/2;
+int getInputSizing(HWND hwnd, WindowConfig *wConfig, RECT *toEdit, char *dir) {
+    HDC hdc = GetDC(hwnd);
+    SIZE textSize = {};
+    GetTextExtentPoint32A(hdc, dir, strlen(dir), &textSize);
+    LONG x = textSize.cx + 2 * OFFSET;
+
+
+    toEdit->left = x;
+    toEdit->top = wConfig->pHeight - OFFSET - LINESIZE;
     toEdit->bottom = wConfig->pHeight - OFFSET + LINESIZE;
     toEdit->right = wConfig->pWidth - OFFSET;
+    ReleaseDC(hwnd, hdc);
     return 1;
 }
 
@@ -81,8 +94,23 @@ int resetTextBox(HWND hwnd) {
     BeginPaint(hwnd, &ps);
     FillRect(hdc, &ps.rcPaint, GetSysColorBrush(COLOR_WINDOW));
     SetWindowTextA(hwnd, "");
-    SendMessageA(hwnd, EM_SETSEL, 0, 0);//
+    SendMessageA(hwnd, EM_SETSEL, 0, 0);
     EndPaint(hwnd, &ps);
     ReleaseDC(hwnd, hdc);
+    return 1;
+}
+
+int moveTextBox(HWND hwnd, WindowConfig *wc, char *dir) {
+    RECT sizing = {};
+    getInputSizing(hwnd, wc, &sizing, dir);
+
+    //we can extract it from the getInputSizing (as we can make it general)
+    int x = sizing.left;
+    int y = sizing.top;
+    int width = sizing.right-sizing.left;
+    int height = sizing.bottom-sizing.top;
+
+    //adjust the window with the text size
+    MoveWindow(hwnd, x, y, width, height, TRUE);
     return 1;
 }

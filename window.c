@@ -9,6 +9,7 @@
 #include "handleText.h"
 
 #define WM_CREATECARET 0x8001
+#define CWDBUF 512
 
 typedef struct ShellArgs {
     HWND hwnd;
@@ -26,10 +27,20 @@ int writingLastMessage(WindowConfig *wc) {
 DWORD handleTextUpdate(LPVOID argConfig) {
     ShellArgs *shellArgs = (ShellArgs *) argConfig;
     handleText(shellArgs->text);
+    //Also must fetch CWD to get length to change EDIT Box
+    char cwd[CWDBUF];
+    getCWD(cwd, CWDBUF);
+    moveTextBox(shellArgs->hwnd, wConfig, cwd);
+
+    //this just edits the messages etc
     editLastFull(wConfig->ch, "", 1, 1);
     if (!changeDisplay(GetParent(shellArgs->hwnd), wConfig)) ExitThread(1);
+
+    //Show the caret 
     SendMessageA(shellArgs->hwnd, WM_CREATECARET, 0, 0);
-    free(shellArgs);//no...
+
+    //prev malloced so we have to handle
+    free(shellArgs);
     return 0;
 }
 
@@ -119,7 +130,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
     //intersante        
     RECT inputPlacement = {};
-    getInputSizing(wConfig, &inputPlacement);
+
+    char cwd[CWDBUF];
+    getCWD(cwd, CWDBUF);
+    getInputSizing(hwnd, wConfig, &inputPlacement, cwd);
 
     HWND textHW = CreateWindowExA(
         0,

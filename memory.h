@@ -7,4 +7,5 @@ int completeCommand(ChatHistory *ch, char *text);
 int editLastFull(ChatHistory *ch, char *text, int cmd, int writing);
 
 
-void getCWD(char *buffer);
+int getCWD(char *buf, int bufLen);
+void findCWD();

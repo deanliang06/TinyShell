@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <synchapi.h>
 #include <stdlib.h>
+#include <windows.h>
 #include <winbase.h>
 #include "types.h"
 #include "memory.h"
@@ -11,7 +12,7 @@ typedef struct DirNav {
     HANDLE mutex;
 } DirNav;
 
-DirNav nav = {};
+DirNav nav = {NULL, NULL};
 
 int freeHistory(ChatHistory *ch) {
     int len = ch->size;
@@ -57,10 +58,6 @@ int initHistory(ChatHistory *ch) {
 
 int editLastFull(ChatHistory *ch, char *text, int cmd, int writing) {
     Message *last = &(ch->messages[ch->size-1]);
-    FILE *fd = fopen("text.txt", "w");
-    fprintf(fd, "We hate ourselves: %s, command: %d\n", last->text, last->command);//fuck windows
-    fclose(fd);//rbuh
-
 
     last->command = cmd;
     last->text = text;
@@ -99,15 +96,15 @@ int completeCommand(ChatHistory *ch, char *text) {
     return 1;
 }
 
-char *getCWD(char *buf) {
-    char *toReturn;
+int getCWD(char *buf, int bufLen) {
+    findCWD();
     WaitForSingleObject(nav.mutex, INFINITE);
-    toReturn = nav.cwd;
+    memcpy(buf, nav.cwd, min(bufLen, strlen(nav.cwd) + 1));//fuck the memory leaks boss
     ReleaseMutex(nav.mutex);
-    return toReturn;
+    return 1;
 }
 
-void resetCWD() {
+void findCWD() {
     if (nav.cwd) free(nav.cwd);
     WaitForSingleObject(nav.mutex, INFINITE);
     char *newBuf = (char *)malloc(sizeof(char)*512);
