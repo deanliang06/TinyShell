@@ -39,7 +39,8 @@ DWORD handleTextUpdate(LPVOID argConfig) {
     //Show the caret 
     SendMessageA(shellArgs->hwnd, WM_CREATECARET, 0, 0);
 
-    //prev malloced so we have to handle
+    //prev malloced so we have to handle (up for debate boss for best practices)
+    free(shellArgs->text);
     free(shellArgs);
     return 0;
 }
@@ -124,9 +125,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     }
     ShowWindow(hwnd, nCmdShow);
     
-    //init
-    changeDisplay(hwnd, wConfig);
-    InvalidateRect(hwnd, NULL, 1);//bruh
+    changeDisplay(hwnd, wConfig); //for the sole purpose of initing the wconfig
+    InvalidateRect(hwnd, NULL, 1);//so that the display is repainted
 
     //intersante        
     RECT inputPlacement = {};
