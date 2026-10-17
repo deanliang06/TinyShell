@@ -26,21 +26,20 @@ int writingLastMessage(WindowConfig *wc) {
 
 DWORD handleTextUpdate(LPVOID argConfig) {
     ShellArgs *shellArgs = (ShellArgs *) argConfig;
-    handleText(shellArgs->text);
+    handleText(shellArgs->text, wConfig->ch);//bro
     //Also must fetch CWD to get length to change EDIT Box
     char cwd[CWDBUF];
     getCWDPretty(cwd, CWDBUF);
     moveTextBox(shellArgs->hwnd, wConfig, cwd);
 
     //this just edits the messages etc
-    editLastFull(wConfig->ch, "", 1);
-    if (!changeDisplay(GetParent(shellArgs->hwnd), wConfig)) ExitThread(1);
+    editLastFull(wConfig->ch, "",1, 1);
+    if (!InvalidateRect(GetParent(shellArgs->hwnd), NULL, TRUE)) ExitThread(1);
 
     //Show the caret 
     SendMessageA(shellArgs->hwnd, WM_CREATECARET, 0, 0);
 
     //prev malloced so we have to handle (up for debate boss for best practices)
-    free(shellArgs->text);
     free(shellArgs);
     return 0;
 }
@@ -54,8 +53,11 @@ LRESULT CALLBACK InputProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, U
                 if (!GetWindowTextA(hwnd, text, tLength + 1)) return 1;//what
                 if (!completeCommand(wConfig->ch, text)) return 1;
                 if (!HideCaret(hwnd)) return 1;
-                if (!InvalidateRect(GetParent(hwnd), NULL, 1)) return 1;
                 if (!resetTextBox(hwnd, text)) return 1;
+                if (!InvalidateRect(GetParent(hwnd), NULL, TRUE)) ExitThread(1);
+                if (!InvalidateRect(hwnd, NULL, TRUE)) ExitThread(1);
+
+                
 
                 //create thread to execute the text handling
                 ShellArgs *shellArg = (ShellArgs *)malloc(sizeof(ShellArgs));
@@ -64,7 +66,7 @@ LRESULT CALLBACK InputProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, U
                 HANDLE thread = CreateThread(NULL, 0, handleTextUpdate, (LPVOID) shellArg, 0, NULL);
                 CloseHandle(thread);
                 return 0;
-            } else if (!writingLastMessage(wConfig)) {//huh
+            } else if (!writingLastMessage(wConfig)) {
                 return 0;
             }
         case WM_CREATECARET:

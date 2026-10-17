@@ -3,7 +3,7 @@ objects = window.o memory.o display.o handleText.o
 
 
 terminal.exe: $(objects) 
-	$(CC) -municode $^ -o $@ -lgdi32 -lcomctl32
+	$(CC) -municode $^ -o $@ -lgdi32 -lcomctl32 -lshlwapi
 
 window.o display.o memory.o : types.h
 window.o : memory.h display.h display.o handleText.o handleText.h

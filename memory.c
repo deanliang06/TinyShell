@@ -8,6 +8,7 @@
 #include "memory.h"
 
 #define BUFLINESIZE 512
+#define OUTPUTBUFLEN 1024
 
 typedef struct DirNav {
     char *cwd;
@@ -15,13 +16,20 @@ typedef struct DirNav {
     HANDLE mutex;
 } DirNav;
 
+typedef struct OutputBuf {
+    char* buf;
+    int size;
+    HANDLE mutex;
+} OutputBuf;
+
+OutputBuf buf = {NULL, 0, NULL};
 DirNav nav = {NULL, NULL, NULL};
 
 int freeHistory(ChatHistory *ch) {
     int len = ch->size;
     for (int i = 0; i < len; i++) {
         free(ch->messages[i].text);
-        free(ch->messages[i].dir);
+        if (ch->messages[i].dir) free(ch->messages[i].dir);
     }
     free(ch->messages);//bro
     return 0;
@@ -57,19 +65,28 @@ int initHistory(ChatHistory *ch) {
     ch->messages = first;
     ch->size = 1;
 
+    //init nav mutex
     nav.mutex = OpenMutexA(SYNCHRONIZE, FALSE, "Directory changing");
+
+    //init the outputbuffer vals
+    buf.mutex = OpenMutexA(SYNCHRONIZE, FALSE, "Buffer Access");
+    buf.buf = (char *)malloc(sizeof(char)* OUTPUTBUFLEN);
 
     return 1;
 }
 
 //used just to init next line as writing
-int editLastFull(ChatHistory *ch, char *text, int writing) {
+int editLastFull(ChatHistory *ch, char *text, int cmd, int writing) {
     Message *last = &(ch->messages[ch->size-1]);
 
     //bc last line we can getcwd
-    char *dir = (char *)malloc(sizeof(char)*BUFLINESIZE);
-    getCWD(dir, BUFLINESIZE);
-    last->dir = dir;
+    if (cmd) {
+        char *dir = (char *)malloc(sizeof(char)*BUFLINESIZE);
+        getCWD(dir, BUFLINESIZE);
+        last->dir = dir;
+    } else {
+        last->dir = NULL;
+    }
     last->text = text;
     last->writing = writing;
 
@@ -97,6 +114,7 @@ int addToHistory(ChatHistory *ch, char *text, int writing) {
     ch->size++;
     return 1;
 }
+
 
 //This is exclusively responsible for setting the text and doing next line with empty line
 //In cases when you submit a command/executable
@@ -137,4 +155,36 @@ void findCWD() {
     nav.cwd = newBuf;
 
     ReleaseMutex(nav.mutex);
+}
+
+void writeToOutputBuf(char *inBuf, ChatHistory *ch, DWORD numBytes) {
+    WaitForSingleObject(buf.mutex, INFINITE);
+    memcpy(buf.buf + buf.size, inBuf, numBytes);
+
+    int lastStart = 0;
+    int newBufSize = -1;
+    buf.buf[buf.size+numBytes] = '\0';//buh
+
+    for (int i = 0; i < buf.size+numBytes; i++) {
+        if (buf.buf[i] == '\n') {
+            char *temp = (char *)malloc(sizeof(char)*(i-lastStart+2));
+            memcpy(temp, buf.buf+lastStart, i-lastStart+1);
+            temp[i-lastStart+1] = '\0';
+            editLastFull(ch, temp, 0, 0);
+            addToHistory(ch, "", 0);
+            lastStart = i+1;
+        }
+
+        if (i == buf.size+numBytes-1 && lastStart != i+1) {
+            char temp[i-lastStart+1];
+            memcpy(temp, buf.buf+lastStart, i-lastStart+1);//so no overwriting
+            memcpy(buf.buf, temp, i-lastStart+1);
+            newBufSize = i-lastStart+1;
+        } else if (i == buf.size+numBytes-1) {
+            newBufSize = 0;
+        }
+    }
+
+    buf.size = newBufSize;
+    ReleaseMutex(buf.mutex);
 }

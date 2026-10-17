@@ -12,9 +12,8 @@
 
 int changeDisplay(HWND hwnd, WindowConfig *wConfig) {
     //just init for now (probably 1000 bugs)
-    HDC deviceContext = GetDC(hwnd);
     PAINTSTRUCT ps;
-    BeginPaint(hwnd, &ps);
+    HDC deviceContext = BeginPaint(hwnd, &ps);
     FillRect(deviceContext, &ps.rcPaint, GetSysColorBrush(COLOR_WINDOW));
 
     ChatHistory *ch = wConfig->ch;
@@ -57,7 +56,6 @@ int changeDisplay(HWND hwnd, WindowConfig *wConfig) {
         curSpaceTaken += LINESIZE;
     }
     ValidateRect(hwnd, NULL);
-    ReleaseDC(hwnd, deviceContext);
     EndPaint(hwnd, &ps);
     return 1;
 }
@@ -85,9 +83,8 @@ int getInputSizing(HWND hwnd, WindowConfig *wConfig, RECT *toEdit, char *dir) {
 }
 
 int resetTextBox(HWND hwnd) {
-    HDC hdc = GetDC(hwnd);
     PAINTSTRUCT ps;
-    BeginPaint(hwnd, &ps);
+    HDC hdc = BeginPaint(hwnd, &ps);
     FillRect(hdc, &ps.rcPaint, GetSysColorBrush(COLOR_WINDOW));
     SetWindowTextA(hwnd, "");
     SendMessageA(hwnd, EM_SETSEL, 0, 0);
