@@ -33,7 +33,7 @@ DWORD handleTextUpdate(LPVOID argConfig) {
     moveTextBox(shellArgs->hwnd, wConfig, cwd);
 
     //this just edits the messages etc
-    editLastFull(wConfig->ch, "", 1, 1);
+    editLastFull(wConfig->ch, "", 1);
     if (!changeDisplay(GetParent(shellArgs->hwnd), wConfig)) ExitThread(1);
 
     //Show the caret 

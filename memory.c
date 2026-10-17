@@ -7,6 +7,8 @@
 #include "types.h"
 #include "memory.h"
 
+#define BUFLINESIZE 512
+
 typedef struct DirNav {
     char *cwd;
     char *cwdP;
@@ -19,6 +21,7 @@ int freeHistory(ChatHistory *ch) {
     int len = ch->size;
     for (int i = 0; i < len; i++) {
         free(ch->messages[i].text);
+        free(ch->messages[i].dir);
     }
     free(ch->messages);//bro
     return 0;
@@ -44,7 +47,9 @@ int initHistory(ChatHistory *ch) {
     Message *first = (Message *)malloc(sizeof(Message));
     if (!first) return 0;
 
-    first->command = 1;
+    char *cwd = (char *)malloc(sizeof(char) * BUFLINESIZE);
+    getCWD(cwd, BUFLINESIZE);
+    first->dir = cwd;
     first->text = "";
     first->writing = 1;
     
@@ -57,10 +62,14 @@ int initHistory(ChatHistory *ch) {
     return 1;
 }
 
-int editLastFull(ChatHistory *ch, char *text, int cmd, int writing) {
+//used just to init next line as writing
+int editLastFull(ChatHistory *ch, char *text, int writing) {
     Message *last = &(ch->messages[ch->size-1]);
 
-    last->command = cmd;
+    //bc last line we can getcwd
+    char *dir = (char *)malloc(sizeof(char)*BUFLINESIZE);
+    getCWD(dir, BUFLINESIZE);
+    last->dir = dir;
     last->text = text;
     last->writing = writing;
 
@@ -73,8 +82,8 @@ int editLastText(ChatHistory *ch, char *text) {
     return 1;
 }
 //this is responsible for adding (stdout for executables 
-//and subsequently adding the next line)
-int addToHistory(ChatHistory *ch, char *text, int cmd, int writing) {
+//and subsequently adding the next line) only non-commands so far so NULL fine
+int addToHistory(ChatHistory *ch, char *text, int writing) {
     if (ch->capacity == ch->size) {
         if (!growhistory(ch)) return 0;
     }
@@ -82,7 +91,7 @@ int addToHistory(ChatHistory *ch, char *text, int cmd, int writing) {
     Message *toAdd = &(ch->messages[ch->size]);
     if (!toAdd) return 0;
 
-    toAdd->command = cmd;
+    toAdd->dir = NULL;
     toAdd->text = text;
     toAdd->writing = writing;
     ch->size++;
@@ -93,7 +102,7 @@ int addToHistory(ChatHistory *ch, char *text, int cmd, int writing) {
 //In cases when you submit a command/executable
 int completeCommand(ChatHistory *ch, char *text) {
     if (!editLastText(ch, text)) return 0;
-    if (!addToHistory(ch, "", 0, 0)) return 0;
+    if (!addToHistory(ch, "", 0)) return 0;
     return 1;
 }
 

@@ -41,15 +41,11 @@ int changeDisplay(HWND hwnd, WindowConfig *wConfig) {
     for (int i = chatSize - 1; i >= 0 && curSpaceTaken < usableWindowHeight; i--) {
         char output[MAXBUFSIZE];
         int entry = 0;
-        if (ch->messages[i].command) {
-            char cwd[MAXBUFSIZE];
-            if (!getCWDPretty(cwd, MAXBUFSIZE)) {
-                ValidateRect(hwnd, NULL);
-                ReleaseDC(hwnd, deviceContext);
-                EndPaint(hwnd, &ps);
-                return 0;
-            }
-            entry = strlen(cwd);
+        if (ch->messages[i].dir) {
+            memcpy(output, ch->messages[i].dir, strlen(ch->messages[i].dir));
+            //for pretty print
+            memcpy(output+strlen(ch->messages[i].dir), "> ", 3);
+            entry = strlen(output);
         }
         memcpy(&output[entry], ch->messages[i].text, strlen(ch->messages[i].text) + 1);
         if (!TextOutA(deviceContext, xConst, bottomY - curSpaceTaken,output,strlen(output))) {

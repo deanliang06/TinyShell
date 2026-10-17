@@ -2,9 +2,9 @@
 #define TYPES_H
 
 typedef struct Message {
-    int command;
     int writing;
-    char* text;
+    char *text;
+    char *dir;//hear me out it acts as cmd (NULL == normal txt)
 } Message;
 
 typedef struct ChatHistory {
