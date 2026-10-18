@@ -10,7 +10,7 @@ $idlePS = Median $ps 'IdleBytes'
 $peakNative = Median $native 'PeakSampledBytes'
 $peakPS = Median $ps 'PeakSampledBytes'
 $svg = New-Object Text.StringBuilder
-[void]$svg.AppendLine('<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="680" viewBox="0 0 1000 680" role="img" aria-labelledby="title desc"><title id="title">TinyShell versus Windows PowerShell private working set</title><desc id="desc">Median idle and sampled peak memory from three fresh processes per shell. Linear axes start at zero. Shell process only.</desc><rect width="1000" height="680" rx="24" fill="#0b1220"/><g font-family="Segoe UI,Arial,sans-serif"><text x="48" y="55" fill="#f1f5f9" font-size="28" font-weight="700">Small shell. Measured footprint.</text><text x="48" y="87" fill="#a9b8ce" font-size="15">Private working set · MiB · median of 3 trials · lower is smaller</text>')
+[void]$svg.AppendLine('<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="680" viewBox="0 0 1000 680" role="img" aria-labelledby="title desc"><title id="title">TinyShell versus Windows PowerShell private working set</title><desc id="desc">Median idle and sampled peak memory from three fresh processes per shell. Linear axes start at zero. Shell process only.</desc><rect width="1000" height="680" rx="24" fill="#0b1220"/><g font-family="Segoe UI,Arial,sans-serif"><text x="48" y="55" fill="#f1f5f9" font-size="28" font-weight="700">Small shell. Measured footprint.</text><text x="48" y="87" fill="#a9b8ce" font-size="15">Private working set &#183; MiB &#183; median of 3 trials &#183; lower is smaller</text>')
 $panels = @(@{Y=120;Title='01 / AT IDLE';A=$idleNative;B=$idlePS},@{Y=355;Title='02 / DURING EXECUTABLE RUN';A=$peakNative;B=$peakPS})
 foreach ($p in $panels) {
  $y = $p.Y
