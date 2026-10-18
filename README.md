@@ -21,7 +21,7 @@ TinyShell is a lightweight, native Windows GUI written in C. It has all the feat
 
 The interface uses Win32 controls and GDI directly. Submitting an executable path starts a worker thread, launches the program, and collects its output for display in the window.
 
-TinyShell currently runs executable files by path (doesn't yet support $PATH). It supports command parsing and normal shell built-ins.
+TinyShell currently supports command parsing and normal shell built-ins.
 
 ## Getting started
 
