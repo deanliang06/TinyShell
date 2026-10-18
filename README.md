@@ -4,7 +4,7 @@
 
 ### A Small Windows shell, built from the API up.
 
-A native shell (~4x less RAM usage when compared to Windows Powershell).
+A native lightwright shell (~25x less RAM usage when compared to Windows Powershell).
 
 ![Language: C](https://img.shields.io/badge/language-C-00599C?style=flat-square)
 ![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D4?style=flat-square)
@@ -17,7 +17,7 @@ A native shell (~4x less RAM usage when compared to Windows Powershell).
 
 ---
 
-TinyShell is a lightweight, native Windows GUI written in C. It has all the features of a normal graphical shell: window messages, keyboard input, process creation, anonymous pipes, text rendering, and manually managed command history.
+TinyShell is a native Windows GUI written in C. It has all the features of a normal graphical shell: window messages, keyboard input, process creation, anonymous pipes, text rendering, and a manually managed command history.
 
 The interface uses Win32 controls and GDI directly. Submitting an executable path starts a worker thread, launches the program, and collects its output for display in the window.
 
@@ -38,7 +38,7 @@ TinyShell currently supports command parsing and normal shell built-ins.
 
 Each shell ran the same compiled C executable for each workload, with **three fresh-process trials per shell**. Values above are medians of sampled execution peaks. The counter stays alive for two seconds after counting to allow sampling.
 
-Measured October 18, 2026 on 64-bit Windows build 26200. Private working set covers the shell process only; child processes, shared pages, and console hosts are excluded. Hidden sessions use a temporary TinyShell build that submits through its existing worker routine and PowerShell without a profile. These results demonstrate low host memory overhead for these workloads, not execution speed or feature parity.
+Measured October 18, 2026 on 64-bit Windows build 26200. Private working set covers the shell process only; child processes, shared pages, and console hosts are excluded. Hidden sessions use a temporary TinyShell build that submits through its existing worker routine and PowerShell without a profile. These results demonstrate low host memory overhead for these workloads.
 
 [Counting results](benchmarks/results.csv) · [Output results](benchmarks/output-results.csv) · [Benchmark runner](benchmarks/run.ps1)
 
