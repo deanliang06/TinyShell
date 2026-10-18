@@ -38,7 +38,7 @@ TinyShell currently supports command parsing and normal shell built-ins.
 
 Each shell ran the same compiled C executable for each workload, with **three fresh-process trials per shell**. Values above are medians of sampled execution peaks. The counter stays alive for two seconds after counting to allow sampling.
 
-Measured October 18, 2026 on 64-bit Windows build 26200. Private working set covers the shell process only; child processes, shared pages, and console hosts are excluded. Hidden sessions use a temporary TinyShell build that submits through its existing worker routine and PowerShell without a profile. These results demonstrate low host memory overhead for these workloads.
+Measured October 18, 2026 on 64-bit Windows build 26200. Private working set covers the shell process only; child processes, shared pages, and console hosts are excluded. Hidden sessions use a temporary TinyShell build that submits through its existing worker routine and PowerShell without a profile. These results demonstrate low host memory overhead for these workloads. It is understood however that the Windows PowerShell offers more functionality.
 
 [Counting results](benchmarks/results.csv) · [Output results](benchmarks/output-results.csv) · [Benchmark runner](benchmarks/run.ps1)
 
