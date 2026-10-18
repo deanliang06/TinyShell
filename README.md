@@ -23,6 +23,25 @@ The interface uses Win32 controls and GDI directly. Submitting an executable pat
 
 TinyShell currently supports command parsing and normal shell built-ins.
 
+## Small footprint, measured
+
+**Under 1.5 MiB of private resident memory at the median sampled execution peak in both workloads** — roughly **96% less than Windows PowerShell 5.1** in these local tests.
+
+| Successful test | TinyShell | Windows PowerShell 5.1 |
+| --- | ---: | ---: |
+| Count internally to 1,000,000; print one result | **1.37 MiB** | 33.38 MiB |
+| Print 100 short lines, paced 25 ms apart | **1.48 MiB** | 33.47 MiB |
+
+![Idle and counting-workload private working set comparison](benchmarks/memory.svg)
+
+![Private working set while handling 100 paced output lines](benchmarks/extended-memory.svg)
+
+Each shell ran the same compiled C executable for each workload, with **three fresh-process trials per shell**. Values above are medians of sampled execution peaks. The counter stays alive for two seconds after counting to allow sampling.
+
+Measured October 18, 2026 on 64-bit Windows build 26200. Private working set covers the shell process only; child processes, shared pages, and console hosts are excluded. Hidden sessions use a temporary TinyShell build that submits through its existing worker routine and PowerShell without a profile. These results demonstrate low host memory overhead for these workloads, not execution speed or feature parity.
+
+[Counting results](benchmarks/results.csv) · [Output results](benchmarks/output-results.csv) · [Benchmark runner](benchmarks/run.ps1)
+
 ## Getting started
 
 ### Requirements

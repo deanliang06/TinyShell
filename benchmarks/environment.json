@@ -1,0 +1,9 @@
+{
+    "Date":  "2026-10-18",
+    "OS":  "Microsoft Windows NT 10.0.26200.0",
+    "PowerShell":  "5.1.26100.9711",
+    "Compiler":  "gcc.exe (Rev8, Built by MSYS2 project) 15.2.0",
+    "Metric":  "QueryWorkingSet resident pages with Shared bit clear; shell process only",
+    "Trials":  3,
+    "SampleIntervalMs":  20
+}

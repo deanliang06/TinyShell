@@ -1,0 +1,7 @@
+"Scenario","Shell","Trial","IdleBytes","PeakSampledBytes","PostBytes","Samples","VerifiedRuns"
+"output","TinyShell","1","1507328","1568768","1617920","108","1"
+"output","Windows PowerShell","1","35020800","35078144","34942976","95","1"
+"output","TinyShell","2","1499136","1556480","1601536","96","1"
+"output","Windows PowerShell","2","35045376","35196928","35119104","84","1"
+"output","TinyShell","3","1347584","1392640","1441792","90","1"
+"output","Windows PowerShell","3","35078144","35098624","35155968","89","1"

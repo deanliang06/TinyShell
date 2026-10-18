@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="680" viewBox="0 0 1000 680" role="img" aria-labelledby="title desc"><title id="title">TinyShell versus Windows PowerShell private working set</title><desc id="desc">Median idle and sampled peak memory from three fresh processes per shell. Linear axes start at zero. Shell process only.</desc><rect width="1000" height="680" rx="24" fill="#0b1220"/><g font-family="Segoe UI,Arial,sans-serif"><text x="48" y="55" fill="#f1f5f9" font-size="28" font-weight="700">Small shell. Measured footprint.</text><text x="48" y="87" fill="#a9b8ce" font-size="15">Private working set Â· MiB Â· median of 3 trials Â· lower is smaller</text>
+<rect x='32' y='120' width='936' height='215' rx='16' fill='#131f32'/><text x='56' y='152' fill='#b8c8df' font-size='14' font-weight='700'>01 / AT IDLE</text>
+<line x1='240' y1='170' x2='240' y2='285' stroke='#29384d'/><text x='240' y='310' text-anchor='middle' fill='#91a4bf' font-size='12'>0</text>
+<line x1='390' y1='170' x2='390' y2='285' stroke='#29384d'/><text x='390' y='310' text-anchor='middle' fill='#91a4bf' font-size='12'>10</text>
+<line x1='540' y1='170' x2='540' y2='285' stroke='#29384d'/><text x='540' y='310' text-anchor='middle' fill='#91a4bf' font-size='12'>20</text>
+<line x1='690' y1='170' x2='690' y2='285' stroke='#29384d'/><text x='690' y='310' text-anchor='middle' fill='#91a4bf' font-size='12'>30</text>
+<line x1='840' y1='170' x2='840' y2='285' stroke='#29384d'/><text x='840' y='310' text-anchor='middle' fill='#91a4bf' font-size='12'>40</text>
+<text x='56' y='208' fill='#edf3fc' font-size='15'>TinyShell</text><rect x='240' y='185' width='19.34' height='34' rx='6' fill='#34d399'/><text x='269.34' y='208' fill='#edf3fc' font-size='16' font-weight='700'>1.29 MiB</text>
+<text x='56' y='268' fill='#edf3fc' font-size='15'>Windows PowerShell</text><rect x='240' y='245' width='500.51' height='34' rx='6' fill='#60a5fa'/><text x='750.51' y='268' fill='#edf3fc' font-size='16' font-weight='700'>33.37 MiB</text>
+<rect x='32' y='355' width='936' height='215' rx='16' fill='#131f32'/><text x='56' y='387' fill='#b8c8df' font-size='14' font-weight='700'>02 / DURING EXECUTABLE RUN</text>
+<line x1='240' y1='405' x2='240' y2='520' stroke='#29384d'/><text x='240' y='545' text-anchor='middle' fill='#91a4bf' font-size='12'>0</text>
+<line x1='390' y1='405' x2='390' y2='520' stroke='#29384d'/><text x='390' y='545' text-anchor='middle' fill='#91a4bf' font-size='12'>10</text>
+<line x1='540' y1='405' x2='540' y2='520' stroke='#29384d'/><text x='540' y='545' text-anchor='middle' fill='#91a4bf' font-size='12'>20</text>
+<line x1='690' y1='405' x2='690' y2='520' stroke='#29384d'/><text x='690' y='545' text-anchor='middle' fill='#91a4bf' font-size='12'>30</text>
+<line x1='840' y1='405' x2='840' y2='520' stroke='#29384d'/><text x='840' y='545' text-anchor='middle' fill='#91a4bf' font-size='12'>40</text>
+<text x='56' y='443' fill='#edf3fc' font-size='15'>TinyShell</text><rect x='240' y='420' width='20.51' height='34' rx='6' fill='#34d399'/><text x='270.51' y='443' fill='#edf3fc' font-size='16' font-weight='700'>1.37 MiB</text>
+<text x='56' y='503' fill='#edf3fc' font-size='15'>Windows PowerShell</text><rect x='240' y='480' width='500.74' height='34' rx='6' fill='#60a5fa'/><text x='750.74' y='503' fill='#edf3fc' font-size='16' font-weight='700'>33.38 MiB</text>
+<text x='48' y='615' fill='#34d399' font-size='23' font-weight='700'>95.90% less private resident memory in this workload</text><text x='48' y='646' fill='#a9b8ce' font-size='13'>1,000,000 internal increments + one output line + 2 s hold. Excludes child and console-host memory.</text></g></svg>
