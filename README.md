@@ -17,11 +17,11 @@ A native shell (~4x more compact than Windows Powershell).
 
 ---
 
-PlayShell is a lightweight, native Windows GUI written in C. It has all the features of a normal graphical shell: window messages, keyboard input, process creation, anonymous pipes, text rendering, and manually managed command history.
+TinyShell is a lightweight, native Windows GUI written in C. It has all the features of a normal graphical shell: window messages, keyboard input, process creation, anonymous pipes, text rendering, and manually managed command history.
 
 The interface uses Win32 controls and GDI directly. Submitting an executable path starts a worker thread, launches the program, and collects its output for display in the window.
 
-PlayShell currently runs executable files by path. It supports command parsing and normal shell built-ins.
+TinyShell currently runs executable files by path (doesn't yet support $PATH). It supports command parsing and normal shell built-ins.
 
 ## Getting started
 
