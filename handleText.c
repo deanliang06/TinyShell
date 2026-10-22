@@ -18,6 +18,8 @@ int checkIfCWD(char *line, char *buf, int start, int end);
 void addExeToBuf(char *buf, char *text, int l, int r);
 void addArgToBuf(char *buf, char *text, int l, int r);
 void getExe(char *fullLine, char *buf);
+void changeCWD(char *text, ChatHistory *ch);
+int checkIfCD(char *text, ChatHistory *ch);
 
 
 
@@ -159,8 +161,8 @@ int handleText(char* text, ChatHistory *ch) {
     char first[READBUF];
     getExe(complete, first);//get executable to seee if it is exe
 
-    if (checkIfCD(first)) {
-        changeCWD(complete);
+    if (checkIfCD(first, ch)) {
+        changeCWD(complete, ch);
     } else if (checkIfExecutable(first)) {
         executeFile(complete, first, ch);
     } else {
@@ -331,13 +333,66 @@ void getExe(char *completeLine, char *buf) {
 }
 
 
-void changeCWD(char *text) {
+void changeCWD(char *text, ChatHistory *ch) {
     char buf[READBUF];
 
     //get the first arg
-    int spaceGroups = 0;
-    for (int i = 0; i < strlen(text)+1; i++) {
-
+    int startIdx = 0;
+    int charGroup = 0;
+    int charGroups = 0;
+    for (int i = 0; i < strlen(text); i++) {
+        if (text[i] != ' ' && !charGroup) {
+            charGroups++;
+            charGroup = 1;
+            if (charGroups == 2) {
+                startIdx = i;
+            }
+        } else if (text[i] == ' ' && charGroup) {
+            if (charGroups == 2) {
+                memcpy(buf, text+startIdx, i-startIdx);
+                buf[i-startIdx] = '\0';
+                break;
+            } 
+            charGroup = 0;
+        }
     }
-    if (!SetCurrentDirectoryA(buf))
+
+    if (!SetCurrentDirectoryA(buf)) {
+        printError("This dir doesn't exist", buf, ch);
+    }
+}
+
+int checkIfCD(char *text, ChatHistory *ch) {
+    //get str for bin 
+    char path[READBUF];
+    int size = GetModuleFileNameA(NULL, path, READBUF);
+
+    //null terminator
+    size-=1;
+    
+    //find first backslash
+    while (path[size] != '\\') size--;
+
+    //add to after the first backslash and add \0 via string
+    size++;
+    memcpy(path+size, "bin\\", 5); //copy bin
+    
+    int newLen = strlen(path);
+    memcpy(path+newLen, "cd.exe", 7);
+
+    FILE *fd = fopen("text.txt", "w");
+    fprintf(fd, "%s\n%s\n", text, path);
+    fclose(fd);
+//dushf
+    int same = 1;
+    for (int i = 0; i < strlen(path) + 1; i++) {
+        if (text[i] != path[i]) {
+            same = 0;
+        }
+    }
+
+    if (same) {
+        return 1;
+    }
+    return 0;
 }
