@@ -167,9 +167,9 @@ void writeToOutputBuf(char *inBuf, ChatHistory *ch, DWORD numBytes) {
 
     for (int i = 0; i < buf.size+numBytes; i++) {
         if (buf.buf[i] == '\n') {
-            char *temp = (char *)malloc(sizeof(char)*(i-lastStart+2));
-            memcpy(temp, buf.buf+lastStart, i-lastStart+1);
-            temp[i-lastStart+1] = '\0';
+            char *temp = (char *)malloc(sizeof(char)*(i-lastStart+1));
+            memcpy(temp, buf.buf+lastStart, i-lastStart);
+            temp[i-lastStart] = '\0';
             editLastFull(ch, temp, 0, 0);
             addToHistory(ch, "", 0);
             lastStart = i+1;
@@ -186,5 +186,29 @@ void writeToOutputBuf(char *inBuf, ChatHistory *ch, DWORD numBytes) {
     }
 
     buf.size = newBufSize;
+    ReleaseMutex(buf.mutex);
+}
+
+void flushOutputBuf(ChatHistory *ch) {
+    WaitForSingleObject(buf.mutex, INFINITE);
+
+    if (buf.size > 0) {
+        //malloc string with 1 plus bufsize for null
+        char *temp = (char *)malloc(sizeof(char)*(buf.size + 1));
+
+        //copy buf into temp
+        memcpy(temp, buf.buf, buf.size);
+        
+        //add null-term
+        temp[buf.size] = '\0';
+
+        //add too last message and create newline
+        editLastFull(ch, temp, 0, 0);
+        addToHistory(ch, "", 0);
+
+        //reset buff size
+        buf.size = 0;
+    }
+
     ReleaseMutex(buf.mutex);
 }

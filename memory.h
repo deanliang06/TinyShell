@@ -12,3 +12,4 @@ int getCWDPretty(char *buf, int bufLen);
 void findCWD();
 
 void writeToOutputBuf(char *text, ChatHistory *ch, DWORD numBytes); //expect the input to be freed
+void flushOutputBuf(ChatHistory *ch);
