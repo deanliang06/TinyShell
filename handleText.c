@@ -144,15 +144,24 @@ int handleText(char* text, ChatHistory *ch) {
         }
     }
 
-    if (startOfSArg != strlen(complete)) {
+    if (!firstArg && startOfSArg != strlen(text)) {//burh
         addArgToBuf(complete, text, startOfSArg, strlen(text));//make again
         firstArg = 0;
+    } else if (firstArg && startOfSArg != strlen(text)) {
+        addExeToBuf(complete, text, startOfSArg, strlen(text));//make again
+        firstArg = 0;
     }
+
+    FILE *fd = fopen("text.txt", "w");
+    fprintf(fd, "%s\n", complete);
+    fclose(fd);
     
     char first[READBUF];
     getExe(complete, first);//get executable to seee if it is exe
 
-    if (checkIfExecutable(first)) {
+    if (checkIfCD(first)) {
+        changeCWD(complete);
+    } else if (checkIfExecutable(first)) {
         executeFile(complete, first, ch);
     } else {
         char *msg = "Cannot find execute file named: ";
@@ -319,4 +328,16 @@ void getExe(char *completeLine, char *buf) {
             return;
         }
     }
+}
+
+
+void changeCWD(char *text) {
+    char buf[READBUF];
+
+    //get the first arg
+    int spaceGroups = 0;
+    for (int i = 0; i < strlen(text)+1; i++) {
+
+    }
+    if (!SetCurrentDirectoryA(buf))
 }
