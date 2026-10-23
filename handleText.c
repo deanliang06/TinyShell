@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <fileapi.h>
@@ -11,16 +12,59 @@
 
 char complete[READBUF];
 
-int dwordToHexStr(DWORD d, char *stuff);
 int checkIfExecutable(char *path);
-int checkIfComplete(char *line, int start);
 int checkIfCWD(char *line, char *buf, int start, int end);
 void addExeToBuf(char *buf, char *text, int l, int r);
-void addArgToBuf(char *buf, char *text, int l, int r);
 void getExe(char *fullLine, char *buf);
 void changeCWD(char *text, ChatHistory *ch);
 int checkIfCD(char *text, ChatHistory *ch);
+int checkIfComplete(char *line, int l);
 
+int dwordToHexStr(DWORD d, char *stuff) {
+    DWORD dupl = d;
+    int size = 0;
+    while (dupl > 0) {
+        dupl/=16;
+        size++;
+    }
+
+    stuff[size] = '\0';
+    int tmpSize = size;
+    while (d > 0) {
+        size--;
+        if (d%16 >= 10) {
+            stuff[size] = 'a' + (d%16-10);
+        } else {
+            stuff[size] = '0' + d%16;
+        }
+        d/=16;
+    }
+    return tmpSize;//excluding the null term
+}
+
+void addArgToBuf(char *buf, char *text) {
+    //check if complete path
+    //else attach cwd
+    
+    if (checkIfComplete(text, 0)) {
+        memcpy(buf, text, strlen(text) + 1);
+        return;
+    }
+
+    char cwd[READBUF];
+
+    GetCurrentDirectoryA(READBUF, cwd);
+    
+    //add back slash like a cat
+    int toAdd = strlen(cwd);
+    memcpy(cwd+toAdd, "\\", 2);
+
+    int base = strlen(cwd);
+    memcpy(cwd+base, text, strlen(text) + 1);
+    memcpy(buf, cwd, strlen(cwd) + 1);
+    
+    return;
+}
 
 
 void printError(char *errMsg, char* text, ChatHistory *ch) {
@@ -50,8 +94,6 @@ void executeFile(char *text, char *exe, ChatHistory *ch) {
     si.cb = sizeof(si);
     
     SecureZeroMemory(&pi, sizeof(pi));
-
-    
 
     if (!CreateProcessA(
         NULL,
@@ -124,74 +166,30 @@ int handleText(char* text, ChatHistory *ch) {
     //extract executable first and then arguments separately
     int startOfSArg = 0;
     int startIdx = 0;
-    int firstArg = 1;
 
     memset(complete, 0, READBUF);
     while (text[startIdx] == ' ') startIdx++;;
-    for (int i = startIdx; i < strlen(text); i++) {
-        if (text[i] == ' ' && startOfSArg != i) {
-            if (firstArg) {
-                addExeToBuf(complete, text, startIdx, i);
-                firstArg = 0;
-                startOfSArg = i+1;
-            } else {
-                addArgToBuf(complete, text, startIdx, i);
-                startOfSArg = i+1;
-            }
-        } else if (text[i] == ' ') {
-            //adivce start of arg
-            startOfSArg++;
-        } else {
-            //normal char
+    for (int i = startIdx; i < strlen(text) + 1; i++) {
+        if (text[i] == ' ' || text[i] == '\0') {//comment
+            addExeToBuf(complete, text, startIdx, i);
+            startOfSArg = i+1;
+            memcpy(complete+strlen(complete), text+i, strlen(text)-i + 1);
+            break;      
         }
     }
 
-    if (!firstArg && startOfSArg != strlen(text)) {//burh
-        addArgToBuf(complete, text, startOfSArg, strlen(text));//make again
-        firstArg = 0;
-    } else if (firstArg && startOfSArg != strlen(text)) {
-        addExeToBuf(complete, text, startOfSArg, strlen(text));//make again
-        firstArg = 0;
-    }
-
-    FILE *fd = fopen("text.txt", "w");
-    fprintf(fd, "%s\n", complete);
-    fclose(fd);
-    
     char first[READBUF];
-    getExe(complete, first);//get executable to seee if it is exe
+    getExe(complete, first);//get executable to see if it is exe
 
     if (checkIfCD(first, ch)) {
         changeCWD(complete, ch);
     } else if (checkIfExecutable(first)) {
         executeFile(complete, first, ch);
     } else {
-        char *msg = "Cannot find execute file named: ";
+        char *msg = "Cannot find executable file named: ";
         printError(msg, first, ch);
     }
     return 0;
-}
-
-int dwordToHexStr(DWORD d, char *stuff) {
-    DWORD dupl = d;
-    int size = 0;
-    while (dupl > 0) {
-        dupl/=16;
-        size++;
-    }
-
-    stuff[size] = '\0';
-    int tmpSize = size;
-    while (d > 0) {
-        size--;
-        if (d%16 >= 10) {
-            stuff[size] = 'a' + (d%16-10);
-        } else {
-            stuff[size] = '0' + d%16;
-        }
-        d/=16;
-    }
-    return tmpSize;//excluding the null term
 }
 
 int checkIfExecutable(char *path) {
@@ -204,35 +202,6 @@ int checkIfExecutable(char *path) {
         return 0;
     }
     return 1;
-}
-
-void addArgToBuf(char *buf, char *text, int l, int r) {
-    //check if complete path
-    //else attach cwd
-    
-    if (checkIfComplete(text, l)) {
-        int base = strlen(buf);
-        memcpy(buf+base, text+l, r-l);
-        memcpy(buf+base+r-l, " ", 2); //with null-term
-        return;
-    }
-
-    char cwd[READBUF];
-
-    getCWD(cwd, READBUF);
-    
-    //add back slash like a cat
-    int toAdd = strlen(cwd);
-    memcpy(cwd+toAdd, "\\", 2);
-
-    int base = strlen(cwd);
-    memcpy(cwd+base, text+l, r-l);
-    cwd[base+r-l] = '\0'; //with null-term
-
-    base = strlen(buf);
-    memcpy(buf+base, cwd, strlen(cwd));
-    memcpy(buf+base+strlen(cwd), " ", 2); //with null-term
-    return;
 }
 
 void addExeToBuf(char *buf, char *text, int l, int r) {
@@ -272,7 +241,7 @@ void addExeToBuf(char *buf, char *text, int l, int r) {
     //add executable file name
     int base = strlen(path);
     memcpy(path+base, text+l, r-l);
-    memcpy(path+base+r-l, " ", 2); //with null-term
+    memcpy(path+base+r-l, "", 1); //with null-term
 
     base = strlen(buf);
     memcpy(buf+base, path, strlen(path) + 1);
@@ -339,17 +308,21 @@ void changeCWD(char *text, ChatHistory *ch) {
     //get the first arg
     int startIdx = 0;
     int charGroup = 0;
+    FILE *fd = fopen("text.txt", "w");
+
     int charGroups = 0;
-    for (int i = 0; i < strlen(text); i++) {
+    for (int i = 0; i < strlen(text) + 1; i++) {
         if (text[i] != ' ' && !charGroup) {
             charGroups++;
             charGroup = 1;
             if (charGroups == 2) {
                 startIdx = i;
             }
-        } else if (text[i] == ' ' && charGroup) {
+        } else if (text[i] == ' ' && charGroup || text[i] == '\0' && charGroup) {
             if (charGroups == 2) {
                 memcpy(buf, text+startIdx, i-startIdx);
+                fprintf(fd, "Start: %d\nEnd: %d\n", startIdx, i);
+
                 buf[i-startIdx] = '\0';
                 break;
             } 
@@ -357,7 +330,16 @@ void changeCWD(char *text, ChatHistory *ch) {
         }
     }
 
-    if (!SetCurrentDirectoryA(buf)) {
+    char newBuf[READBUF];
+    addArgToBuf(newBuf, buf);
+
+    fprintf(fd, "%s\n", buf);
+    fprintf(fd, "%s\n", newBuf);
+    fprintf(fd, "%s\n", text);
+    fclose(fd);
+    
+
+    if (!SetCurrentDirectoryA(newBuf)) {
         printError("This dir doesn't exist", buf, ch);
     }
 }
@@ -380,10 +362,6 @@ int checkIfCD(char *text, ChatHistory *ch) {
     int newLen = strlen(path);
     memcpy(path+newLen, "cd.exe", 7);
 
-    FILE *fd = fopen("text.txt", "w");
-    fprintf(fd, "%s\n%s\n", text, path);
-    fclose(fd);
-//dushf
     int same = 1;
     for (int i = 0; i < strlen(path) + 1; i++) {
         if (text[i] != path[i]) {

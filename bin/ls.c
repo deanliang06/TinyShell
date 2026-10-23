@@ -6,6 +6,7 @@
 #define LOC_ERR 3
 
 #define BUFLEN 1024
+#define READBUF 1024
 
 void printError(int errCode) {
     if (errCode == TOO_FEW_A) {
@@ -16,6 +17,45 @@ void printError(int errCode) {
         printf("Error locating the directory");
     }
 }
+
+int checkIfComplete(char *line) {
+    char *compCheck = "C:\\";
+    int completePath = 1;
+    for (int i = 0; i < strlen(compCheck); i++) {
+        if (compCheck[i] != line[i]) {
+            completePath = 0;
+            break;
+        }
+    }
+
+    return completePath;
+}
+
+void addArgToBuf(char *buf, char *text) {
+    //check if complete path
+    //else attach cwd
+    
+    if (checkIfComplete(text)) {
+        memcpy(buf, text, strlen(text) + 1);
+        return;
+    }
+
+    char cwd[READBUF];
+
+    GetCurrentDirectoryA(READBUF, cwd);
+    
+    //add back slash like a cat
+    int toAdd = strlen(cwd);
+    memcpy(cwd+toAdd, "\\", 2);
+
+
+    int base = strlen(cwd);
+    memcpy(cwd+base, text, strlen(text) + 1);
+    memcpy(buf, cwd, strlen(cwd) + 1);
+    
+    return;
+}
+
 
 int main(int argc, char *argv[]) {
     if (argc < 1) {
@@ -30,8 +70,7 @@ int main(int argc, char *argv[]) {
     int cwdLen = GetCurrentDirectoryA(BUFLEN, buf);
 
     if (argc > 1) {
-        memset(buf, 0, cwdLen);
-        memcpy(buf, argv[1], strlen(argv[1]));
+        addArgToBuf(buf, argv[1]);
     }
 
     //add wildcard

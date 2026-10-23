@@ -3,6 +3,8 @@
 #include <windows.h>
 #include <errhandlingapi.h>
 
+#define READBUF 1024
+
 #define TOO_FEW_ARGS 1
 #define TOO_MANY_ARGS 2
 #define DIR_ERR 3
@@ -23,6 +25,45 @@ void printError(int errNo) {
     }
 }
 
+int checkIfComplete(char *line) {
+    char *compCheck = "C:\\";
+    int completePath = 1;
+    for (int i = 0; i < strlen(compCheck); i++) {
+        if (compCheck[i] != line[i]) {
+            completePath = 0;
+            break;
+        }
+    }
+
+    return completePath;
+}
+
+void addArgToBuf(char *buf, char *text) {
+    //check if complete path
+    //else attach cwd
+    
+    if (checkIfComplete(text)) {
+        memcpy(buf, text, strlen(text) + 1);
+        return;
+    }
+
+    char cwd[READBUF];
+
+    GetCurrentDirectoryA(READBUF, cwd);
+    
+    //add back slash like a cat
+    int toAdd = strlen(cwd);
+    memcpy(cwd+toAdd, "\\", 2);
+
+
+    int base = strlen(cwd);
+    memcpy(cwd+base, text, strlen(text) + 1);
+    memcpy(buf, cwd, strlen(cwd) + 1);
+    
+    return;
+}
+
+
 int main(int argc, char *argv[]) {
     if (argc < 2) {
         printError(TOO_FEW_ARGS);
@@ -34,8 +75,11 @@ int main(int argc, char *argv[]) {
 
     SetLastError(0);
 
+    char supposedFile[READBUF];
+    addArgToBuf(supposedFile, argv[1]);
+
     BOOL handle = CreateDirectoryA(
-        argv[1], 
+        supposedFile, 
         NULL
     );
 
