@@ -1,8 +1,11 @@
 #include <stdio.h>
 
-int main() {
-    printf("Hello boss\n");
-    printf("My name is Dean Liang\n");
-    char *n = 0;
-    printf("%c", *n);
+int main(int argc, char *argv[]) {
+    if (argc == 1) {
+        printf("Use two or more\n");
+    }
+    printf("%s\n", argv[1]);
+
+    char *c = 0;
+    printf("%c", *c);
 }

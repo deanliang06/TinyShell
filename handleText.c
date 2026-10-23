@@ -79,12 +79,6 @@ void executeFile(char *text, char *exe, ChatHistory *ch) {
     HANDLE read, write = NULL;
     SECURITY_ATTRIBUTES sa = {sizeof(SECURITY_ATTRIBUTES), NULL, TRUE};
     if (!CreatePipe(&read, &write, &sa, 0)) return;
-    
-    HANDLE outHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-    HANDLE errHandle = GetStdHandle(STD_ERROR_HANDLE);
-
-    SetStdHandle(STD_OUTPUT_HANDLE, write);
-    SetStdHandle(STD_ERROR_HANDLE, write);
 
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
@@ -92,6 +86,9 @@ void executeFile(char *text, char *exe, ChatHistory *ch) {
     //zero out the block of memory entirely
     SecureZeroMemory(&si, sizeof(si));
     si.cb = sizeof(si);
+    si.dwFlags = STARTF_USESTDHANDLES;
+    si.hStdError = write;
+    si.hStdOutput = write;
     
     SecureZeroMemory(&pi, sizeof(pi));
 
@@ -107,17 +104,12 @@ void executeFile(char *text, char *exe, ChatHistory *ch) {
         &si,
         &pi
     )) {
-        SetStdHandle(STD_OUTPUT_HANDLE, outHandle);
-        SetStdHandle(STD_ERROR_HANDLE, errHandle);
         CloseHandle(write);
         CloseHandle(read);
         char *err = "File execution error: ";
         printError(err, exe, ch);
         return;
     };
-
-    SetStdHandle(STD_OUTPUT_HANDLE, outHandle);
-    SetStdHandle(STD_ERROR_HANDLE, errHandle);
 
     CloseHandle(write);
 
